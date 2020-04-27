@@ -56,12 +56,10 @@ def img2map(image):
     pixmap = QPixmap.fromImage(qimage)
     return pixmap
 
-
 def cameraOn():
     window.status.setText("Turning camera On")
     qtimerCamera.start(50)
     window.status.setText("Capturing image...")
-
 
 def cameraOff():
     window.status.setText("Turning camera Off")
@@ -70,7 +68,6 @@ def cameraOff():
         cap.release()
     window.image_input.setPixmap(QPixmap("black.png"))
     window.status.setText("Camera Off")
-
 
 def grabImageInput():
     if not cap.isOpened():
