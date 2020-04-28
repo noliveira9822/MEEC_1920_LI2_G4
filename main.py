@@ -1,10 +1,6 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 import os
 import cv2
 import sys
-import time
 import pickle
 import facenet
 import detect_face
@@ -15,10 +11,10 @@ import numpy as np
 import tensorflow as tf
 from scipy import misc
 
-modeldir = 'Facenet-Real-time-face-recon/model/20170511-185253.pb'
-classifier_filename = 'Facenet-Real-time-face-recon/class/classifier.pkl'
-npy='Facenet-Real-time-face-recon/npy'
-train_img="Facenet-Real-time-face-recon/train_img"
+modeldir = './model/20170511-185253.pb'
+classifier_filename = './class/classifier.pkl'
+npy='./npy'
+train_img="./train_img"
 c = 0
 
 with tf.Graph().as_default():
@@ -72,89 +68,60 @@ def cameraOff():
 def grabImageInput():
     if not cap.isOpened():
         cap.open(0)
-
     ret, frame = cap.read()
-    #face_cascade = cv2.CascadeClassifier('./haarcascade_frontalface_default.xml')
     frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
-
-    curTime = time.time() + 1  # calc fps
     timeF = frame_interval
 
     if (c % timeF == 0):
-        find_results = []
         if frame.ndim == 2:
             frame = facenet.to_rgb(frame)
         frame = frame[:, :, 0:3]
-        bounding_boxes, _ = detect_face.detect_face(frame, minsize, pnet, rnet, onet, threshold, factor)
-        nrof_faces = bounding_boxes.shape[0]
-        print('Face Detected: %d' % nrof_faces)
+        bounding_boxes, _ = detect_face.detect_face(frame, minsize, pnet, rnet, onet, threshold, factor)  # MTCNN
+        nfaces = bounding_boxes.shape[0]
 
-        if nrof_faces > 0:
+        if nfaces > 0:
             det = bounding_boxes[:, 0:4]
-            img_size = np.asarray(frame.shape)[0:2]
-
             cropped = []
             scaled = []
             scaled_reshape = []
-            bb = np.zeros((nrof_faces, 4), dtype=np.int32)
+            bbox = np.zeros((nfaces, 4), dtype=np.int32)
 
-            for i in range(nrof_faces):
+            for i in range(nfaces):
                 emb_array = np.zeros((1, embedding_size))
+                bbox[i][0] = det[i][0]
+                bbox[i][1] = det[i][1]
+                bbox[i][2] = det[i][2]
+                bbox[i][3] = det[i][3]
 
-                bb[i][0] = det[i][0]
-                bb[i][1] = det[i][1]
-                bb[i][2] = det[i][2]
-                bb[i][3] = det[i][3]
-
-                # inner exception
-                if bb[i][0] <= 0 or bb[i][1] <= 0 or bb[i][2] >= len(frame[0]) or bb[i][3] >= len(frame):
+                if bbox[i][0] <= 0 or bbox[i][1] <= 0 or bbox[i][2] >= len(frame[0]) or bbox[i][3] >= len(frame):
                     window.status.setText('face is too close')
+                    window.image_input.setPixmap(img2map(frame))
                     continue
 
-                cropped.append(frame[bb[i][1]:bb[i][3], bb[i][0]:bb[i][2], :])
-                cropped[i] = facenet.flip(cropped[i], False)
+                cropped.append(frame[bbox[i][1]:bbox[i][3], bbox[i][0]:bbox[i][2], :])
+                # cropped[i] = facenet.flip(cropped[i], False)
                 scaled.append(misc.imresize(cropped[i], (image_size, image_size), interp='bilinear'))
-                scaled[i] = cv2.resize(scaled[i], (input_image_size, input_image_size),
-                                       interpolation=cv2.INTER_CUBIC)
-                scaled[i] = facenet.prewhiten(scaled[i])
+                scaled[i] = cv2.resize(scaled[i], (input_image_size, input_image_size), interpolation=cv2.INTER_CUBIC)
+                scaled[i] = facenet.prewhiten(scaled[i])  # Pixel range normalization
                 scaled_reshape.append(scaled[i].reshape(-1, input_image_size, input_image_size, 3))
+
                 feed_dict = {images_placeholder: scaled_reshape[i], phase_train_placeholder: False}
                 emb_array[0, :] = sess.run(embeddings, feed_dict=feed_dict)
                 predictions = model.predict_proba(emb_array)
-                print(predictions)
+
                 best_class_indices = np.argmax(predictions, axis=1)
-                # print(best_class_indices)
-                best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-                print(best_class_probabilities)
+                best_class_probability = predictions[np.arange(len(best_class_indices)), best_class_indices]
 
-                cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (105, 189, 45), 1)
-                window.image_input.setPixmap(img2map(frame))
-                # boxing face
-
-                # plot result idx under box
-                text_x = bb[i][0]
-                text_y = bb[i][3] + 20
-                print('Result Indices: ', best_class_indices[0])
-                #print(HumanNames)
+                cv2.rectangle(frame, (bbox[i][0], bbox[i][1]), (bbox[i][2], bbox[i][3]), (105, 189, 45), 1)
                 for H_i in HumanNames:
-                    #print(H_i)
                     if HumanNames[best_class_indices[0]] == H_i:
-                        result_names = HumanNames[best_class_indices[0]]
-                        cv2.putText(frame, result_names, (text_x, text_y), cv2.FONT_HERSHEY_COMPLEX_SMALL,
-                                    1, (0, 0, 255), thickness=1, lineType=2)
-                        print(result_names)
-                        window.status.setText(result_names)
+                        result_name = HumanNames[best_class_indices[0]]
+                        cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (105, 189, 45), 1)
+
+                window.image_input.setPixmap(img2map(frame))
         else:
             window.status.setText('Unable to align')
-
-#    if face_cascade.empty():
-#        window.status.setText("Cannot detect faces")
-#        window.image_input.setPixmap(img2map(image))
-#    else:
-#        faces = face_cascade.detectMultiScale(image, 1.3, 6)
-#        for (x, y, w, h) in faces:
-#            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-#            window.image_input.setPixmap(img2map(image))
+            window.image_input.setPixmap(img2map(frame))
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture()
