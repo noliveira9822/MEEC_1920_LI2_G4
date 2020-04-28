@@ -85,7 +85,6 @@ def grabImageInput():
             scaled = []
             scaled_reshape = []
             bbox = np.zeros((nfaces, 4), dtype=np.int32)
-
             for i in range(nfaces):
                 emb_array = np.zeros((1, embedding_size))
                 bbox[i][0] = det[i][0]
