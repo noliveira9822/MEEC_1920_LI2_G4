@@ -8,6 +8,7 @@ import os
 import math
 import pickle
 from sklearn.svm import SVC
+from sklearn import model_selection
 import sys
 
 class training:
@@ -21,6 +22,7 @@ class training:
             with tf.Session() as sess:
                 img_data = facenet.get_dataset(self.datadir)
                 path, label = facenet.get_image_paths_and_labels(img_data)
+                print("Tensorflow version: {}".format(tf.__version__))
                 print('Classes: %d' % len(img_data))
                 print('Images: %d' % len(path))
 
@@ -36,9 +38,10 @@ class training:
                 nrof_images = len(path)
                 nrof_batches_per_epoch = int(math.ceil(1.0 * nrof_images / batch_size))
                 emb_array = np.zeros((nrof_images, embedding_size))
-                for i in range(nrof_batches_per_epoch):
-                    start_index = i * batch_size
-                    end_index = min((i + 1) * batch_size, nrof_images)
+
+                for epoch in range(nrof_batches_per_epoch):
+                    start_index = epoch * batch_size
+                    end_index = min((epoch + 1) * batch_size, nrof_images)
                     paths_batch = path[start_index:end_index]
                     images = facenet.load_data(paths_batch, False, False, image_size)
                     feed_dict = {images_placeholder: images, phase_train_placeholder: False}
@@ -51,9 +54,13 @@ class training:
                 model = SVC(kernel='linear', probability=True)
                 model.fit(emb_array, label)
 
-                class_names = [cls.name.replace('_', ' ') for cls in img_data]
+                results = model_selection.cross_val_score(model, emb_array, label, scoring='neg_log_loss')
+                print(results.std())
 
+                class_names = [cls.name.replace('_', ' ') for cls in img_data]
                 # Saving model
                 with open(classifier_file_name, 'wb') as outfile:
                     pickle.dump((model, class_names), outfile)
+
+                print(class_names)
                 return classifier_file_name

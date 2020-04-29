@@ -6,10 +6,12 @@ import facenet
 import detect_face
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 import numpy as np
 import tensorflow as tf
 from scipy import misc
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 modeldir = './model/20170511-185253.pb'
 classifier_filename = './class/classifier.pkl'
@@ -54,7 +56,9 @@ def img2map(image):
 
 def cameraOn():
     window.status.setText("Turning camera On")
-    qtimerCamera.start(50)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+    qtimerCamera.start(30)
     window.status.setText("Capturing image...")
 
 def cameraOff():
@@ -69,7 +73,7 @@ def grabImageInput():
     if not cap.isOpened():
         cap.open(0)
     ret, frame = cap.read()
-    frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
+    #frame = cv2.resize(frame, (0,0), fx=0.6, fy=0.6)
     timeF = frame_interval
 
     if (c % timeF == 0):
@@ -115,7 +119,7 @@ def grabImageInput():
                 for H_i in HumanNames:
                     if HumanNames[best_class_indices[0]] == H_i:
                         result_name = HumanNames[best_class_indices[0]]
-                        cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (105, 189, 45), 1)
+                        cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (105, 195, 45), 1)
 
                 window.image_input.setPixmap(img2map(frame))
         else:
@@ -123,11 +127,10 @@ def grabImageInput():
             window.image_input.setPixmap(img2map(frame))
 
 if __name__ == "__main__":
-    cap = cv2.VideoCapture()
+    cap = cv2.VideoCapture(0)
     app = QtWidgets.QApplication(sys.argv)
     window = uic.loadUi("mainWindow.ui")
     window.image_input.setPixmap(QPixmap("black.png"))
-
     window.image_crop.setPixmap(QPixmap("black.png"))
     window.button_cameraOn.clicked.connect(cameraOn)
     window.button_cameraOff.clicked.connect(cameraOff)
