@@ -118,8 +118,11 @@ def grabImageInput():
                 cv2.rectangle(frame, (bbox[i][0], bbox[i][1]), (bbox[i][2], bbox[i][3]), (105, 189, 45), 1)
                 for H_i in HumanNames:
                     if HumanNames[best_class_indices[0]] == H_i:
-                        result_name = HumanNames[best_class_indices[0]]
-                        cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (105, 195, 45), 1)
+                        if best_class_probability > 0.5:
+                            result_name = HumanNames[best_class_indices[0]]
+                            cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (105, 195, 45), 1)
+                        else:
+                            window.certeza.setText("Unnable to give a certain guess")
 
                 window.image_input.setPixmap(img2map(frame))
         else:
@@ -131,7 +134,6 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = uic.loadUi("mainWindow.ui")
     window.image_input.setPixmap(QPixmap("black.png"))
-    window.image_crop.setPixmap(QPixmap("black.png"))
     window.button_cameraOn.clicked.connect(cameraOn)
     window.button_cameraOff.clicked.connect(cameraOff)
     qtimerCamera = QTimer()
