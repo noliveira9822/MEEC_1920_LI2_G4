@@ -8,7 +8,10 @@ import numpy as np
 import facenet
 import detect_face
 
-class preprocesses:
+
+# This class is responsible for de pre processing and alignment of all the faces detected in the dataset
+# Face detection using Multi-task Cascaded Convolutional Networks (MTCNN)
+class PreProcesses:
     def __init__(self, input_datadir, output_datadir):
         self.input_datadir = input_datadir
         self.output_datadir = output_datadir
@@ -51,12 +54,12 @@ class preprocesses:
                         try:
                             img = misc.imread(image_path)
                         except (IOError, ValueError, IndexError) as e:
-                            errorMessage = '{}: {}'.format(image_path, e)
-                            print(errorMessage)
+                            error_message = '{}: {}'.format(image_path, e)
+                            print(error_message)
                         else:
                             if img.ndim < 2:
                                 print('Unable to align "%s"' % image_path)
-                                text_file.write('%s\n' % (output_filename))
+                                text_file.write('%s\n' % output_filename)
                                 continue
                             if img.ndim == 2:
                                 img = facenet.to_rgb(img)
@@ -93,9 +96,9 @@ class preprocesses:
                                 nrof_successfully_aligned += 1
                                 misc.imsave(output_filename, scaled_temp)
                                 text_file.write('%s %d %d %d %d\n' % (
-                                output_filename, bb_temp[0], bb_temp[1], bb_temp[2], bb_temp[3]))
+                                    output_filename, bb_temp[0], bb_temp[1], bb_temp[2], bb_temp[3]))
                             else:
                                 print('Unable to align "%s"' % image_path)
-                                text_file.write('%s\n' % (output_filename))
+                                text_file.write('%s\n' % output_filename)
 
-        return (nrof_images_total,nrof_successfully_aligned)
+        return nrof_images_total, nrof_successfully_aligned

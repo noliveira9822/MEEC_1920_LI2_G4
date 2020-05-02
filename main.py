@@ -13,15 +13,22 @@ from scipy import misc
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-modeldir = './model/20170511-185253.pb'
+model_dir = './model/20180402-114759.pb'
 classifier_filename = './class/classifier.pkl'
-npy='./npy'
-train_img="./train_img"
+npy = './npy'
+train_img = "./train_img"
 c = 0
 
 with tf.Graph().as_default():
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
     sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+    # Easter egg
+    print('████░ █████░ ████░ ████░ ██░   █░ ████░ █████░')
+    print('█░    █░  █░ █░    █░    █░█░  █░ █░      █░')
+    print('███░  █████░ █░    ███░  █░ █░ █░ ███░    █░')
+    print('█░    █░  █░ █░    █░    █░  █░█░ █░      █░')
+    print('█░    █░  █░ ████░ ████░ █░   ██░ ████░   █░')
+    print('           WEBCAM FACE IDENTIFIER')
     with sess.as_default():
         pnet, rnet, onet = detect_face.create_mtcnn(sess, npy)
 
@@ -36,8 +43,9 @@ with tf.Graph().as_default():
 
         HumanNames = os.listdir(train_img)
         HumanNames.sort()
-
-        facenet.load_model(modeldir)
+        print('Loading classifier model...')
+        facenet.load_model(model_dir)
+        print('Loading classes...')
         images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
         embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
         phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
@@ -47,12 +55,14 @@ with tf.Graph().as_default():
         with open(classifier_filename_exp, 'rb') as infile:
             (model, class_names) = pickle.load(infile)
 
+
 def img2map(image):
     height, width, channel = image.shape
-    bytesPerLine = 3 * width
-    qimage = QImage(image.data, width, height, bytesPerLine, QImage.Format_BGR888)
+    bytes_per_line = 3 * width
+    qimage = QImage(image.data, width, height, bytes_per_line, QImage.Format_BGR888)
     pixmap = QPixmap.fromImage(qimage)
     return pixmap
+
 
 def cameraOn():
     window.status.setText("Turning camera On")
@@ -60,6 +70,7 @@ def cameraOn():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
     qtimerCamera.start(30)
     window.status.setText("Capturing image...")
+
 
 def cameraOff():
     window.status.setText("Turning camera Off")
@@ -69,14 +80,15 @@ def cameraOff():
     window.image_input.setPixmap(QPixmap("black.png"))
     window.status.setText("Camera Off")
 
+
 def grabImageInput():
     if not cap.isOpened():
         cap.open(0)
     ret, frame = cap.read()
     #frame = cv2.resize(frame, (0,0), fx=0.6, fy=0.6)
-    timeF = frame_interval
+    time_f = frame_interval
 
-    if (c % timeF == 0):
+    if (c % time_f == 0):
         if frame.ndim == 2:
             frame = facenet.to_rgb(frame)
         frame = frame[:, :, 0:3]
@@ -118,18 +130,21 @@ def grabImageInput():
                 cv2.rectangle(frame, (bbox[i][0], bbox[i][1]), (bbox[i][2], bbox[i][3]), (105, 189, 45), 1)
                 for H_i in HumanNames:
                     if HumanNames[best_class_indices[0]] == H_i:
-                        if best_class_probability > 0.5:
+                        if best_class_probability > 0.35:
                             result_name = HumanNames[best_class_indices[0]]
                             cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (105, 195, 45), 1)
+                            window.certeza.setText("Probability: %.2f %%" % (best_class_probability[0] * 100))
                         else:
-                            window.certeza.setText("Unnable to give a certain guess")
+                            window.certeza.setText("Unknown Face")
 
                 window.image_input.setPixmap(img2map(frame))
         else:
             window.status.setText('Unable to align')
             window.image_input.setPixmap(img2map(frame))
 
+
 if __name__ == "__main__":
+    print('Loading user interface...')
     cap = cv2.VideoCapture(0)
     app = QtWidgets.QApplication(sys.argv)
     window = uic.loadUi("mainWindow.ui")
@@ -138,6 +153,6 @@ if __name__ == "__main__":
     window.button_cameraOff.clicked.connect(cameraOff)
     qtimerCamera = QTimer()
     qtimerCamera.timeout.connect(grabImageInput)
-
+    print('Done!')
     window.show()
     app.exec()

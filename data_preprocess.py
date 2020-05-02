@@ -1,13 +1,14 @@
-from preprocess import preprocesses
+from preprocess import PreProcesses
 
-input_datadir = './train_img'
-output_datadir = './pre_img'
+input_data_dir = './train_img'
+output_data_dir = './pre_img'
 
-obj=preprocesses(input_datadir,output_datadir)
-nrof_images_total,nrof_successfully_aligned=obj.collect_data()
+# Calls the photo Pre Processing function and gives the directories
+obj = PreProcesses(input_data_dir, output_data_dir)
+n_images_total, n_successfully_aligned = obj.collect_data()
 
-print('Total number of images: %d' % nrof_images_total)
-print('Number of successfully aligned images: %d' % nrof_successfully_aligned)
+print('Total number of images: %d' % n_images_total)
+print('Number of successfully aligned images: %d' % n_successfully_aligned)
 
 
 
