@@ -1,5 +1,5 @@
 import os
-import cv2
+import cv2.cv2 as cv2
 import sys
 import pickle
 import facenet
@@ -66,9 +66,7 @@ def img2map(image):
 
 def cameraOn():
     window.status.setText("Turning camera On")
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-    qtimerCamera.start(30)
+    qtimerCamera.start(20)
     window.status.setText("Capturing image...")
 
 
@@ -151,6 +149,7 @@ if __name__ == "__main__":
     window.image_input.setPixmap(QPixmap("black.png"))
     window.button_cameraOn.clicked.connect(cameraOn)
     window.button_cameraOff.clicked.connect(cameraOff)
+    window.image_input.setScaledContents(True)
     qtimerCamera = QTimer()
     qtimerCamera.timeout.connect(grabImageInput)
     print('Done!')
