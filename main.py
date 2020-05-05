@@ -6,22 +6,25 @@ import facenet
 import detect_face
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import QTimer
 import numpy as np
 import tensorflow as tf
 from scipy import misc
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Only to remove de AVX2 instruction warning
 
 model_dir = './model/20180402-114759.pb'
 classifier_filename = './class/classifier.pkl'
 npy = './npy'
 train_img = "./train_img"
+cam_number = 0
 c = 0
 
 with tf.Graph().as_default():
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
-    sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+    # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
+    # sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+    settings = tf.ConfigProto(intra_op_parallelism_threads=3, inter_op_parallelism_threads=3, log_device_placement=False)
+    sess = tf.Session(config=settings)
     # Easter egg
     print('████░ █████░ ████░ ████░ ██░   █░ ████░ █████░')
     print('█░    █░  █░ █░    █░    █░█░  █░ █░      █░')
@@ -66,7 +69,11 @@ def img2map(image):
 
 def cameraOn():
     window.status.setText("Turning camera On")
+    if not cap.isOpened():
+        cap.open(cam_number)
     qtimerCamera.start(20)
+    cap.set(3, 320)
+    cap.set(4, 240)
     window.status.setText("Capturing image...")
 
 
@@ -81,9 +88,8 @@ def cameraOff():
 
 def grabImageInput():
     if not cap.isOpened():
-        cap.open(0)
-    ret, frame = cap.read()
-    #frame = cv2.resize(frame, (0,0), fx=0.6, fy=0.6)
+        cameraOn()
+    ret, frame = cap.read()  # Returns the frame from camera
     time_f = frame_interval
 
     if (c % time_f == 0):
@@ -112,7 +118,7 @@ def grabImageInput():
                     continue
 
                 cropped.append(frame[bbox[i][1]:bbox[i][3], bbox[i][0]:bbox[i][2], :])
-                # cropped[i] = facenet.flip(cropped[i], False)
+                #cropped[i] = facenet.flip(cropped[i], False)
                 scaled.append(misc.imresize(cropped[i], (image_size, image_size), interp='bilinear'))
                 scaled[i] = cv2.resize(scaled[i], (input_image_size, input_image_size), interpolation=cv2.INTER_CUBIC)
                 scaled[i] = facenet.prewhiten(scaled[i])  # Pixel range normalization
@@ -143,7 +149,7 @@ def grabImageInput():
 
 if __name__ == "__main__":
     print('Loading user interface...')
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(cam_number)
     app = QtWidgets.QApplication(sys.argv)
     window = uic.loadUi("mainWindow.ui")
     window.image_input.setPixmap(QPixmap("black.png"))
