@@ -1,7 +1,7 @@
 from preprocess import PreProcesses
 
-input_data_dir = './train_img'
-output_data_dir = './pre_img'
+input_data_dir = 'dataset'
+output_data_dir = 'train_img'
 
 # Calls the photo Pre Processing function and gives the directories
 obj = PreProcesses(input_data_dir, output_data_dir)

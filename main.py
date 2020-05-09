@@ -41,7 +41,7 @@ with tf.Graph().as_default():
         margin = 44
         frame_interval = 3
         batch_size = 1000
-        image_size = 182
+        image_size = 160 #182
         input_image_size = 160
 
         HumanNames = os.listdir(train_img)
@@ -71,7 +71,7 @@ def cameraOn():
     window.status.setText("Turning camera On")
     if not cap.isOpened():
         cap.open(cam_number)
-    qtimerCamera.start(20)
+    qtimerCamera.start(80)
     cap.set(3, 320)
     cap.set(4, 240)
     window.status.setText("Capturing image...")
@@ -94,7 +94,8 @@ def grabImageInput():
 
     if (c % time_f == 0):
         if frame.ndim == 2:
-            frame = facenet.to_rgb(frame)
+            #frame = facenet.to_rgb(frame)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = frame[:, :, 0:3]
         bounding_boxes, _ = detect_face.detect_face(frame, minsize, pnet, rnet, onet, threshold, factor)  # MTCNN
         nfaces = bounding_boxes.shape[0]
@@ -119,8 +120,9 @@ def grabImageInput():
 
                 cropped.append(frame[bbox[i][1]:bbox[i][3], bbox[i][0]:bbox[i][2], :])
                 #cropped[i] = facenet.flip(cropped[i], False)
-                scaled.append(misc.imresize(cropped[i], (image_size, image_size), interp='bilinear'))
-                scaled[i] = cv2.resize(scaled[i], (input_image_size, input_image_size), interpolation=cv2.INTER_CUBIC)
+                #scaled.append(misc.imresize(cropped[i], (image_size, image_size), interp='bilinear'))
+                #scaled[i] = cv2.resize(scaled[i], (input_image_size, input_image_size), interpolation=cv2.INTER_CUBIC)
+                scaled.append(cv2.resize(cropped[i], (input_image_size, input_image_size), interpolation=cv2.INTER_NEAREST))
                 scaled[i] = facenet.prewhiten(scaled[i])  # Pixel range normalization
                 scaled_reshape.append(scaled[i].reshape(-1, input_image_size, input_image_size, 3))
 
@@ -134,7 +136,7 @@ def grabImageInput():
                 cv2.rectangle(frame, (bbox[i][0], bbox[i][1]), (bbox[i][2], bbox[i][3]), (105, 189, 45), 1)
                 for H_i in HumanNames:
                     if HumanNames[best_class_indices[0]] == H_i:
-                        if best_class_probability > 0.35:
+                        if best_class_probability > 0.45:
                             result_name = HumanNames[best_class_indices[0]]
                             cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (105, 195, 45), 1)
                             window.certeza.setText("Probability: %.2f %%" % (best_class_probability[0] * 100))
