@@ -85,7 +85,6 @@ def cameraOff():
     window.image_input.setPixmap(QPixmap("black.png"))
     window.status.setText("Camera Off")
 
-
 def grabImageInput():
     if not cap.isOpened():
         cameraOn()
@@ -146,6 +145,7 @@ def grabImageInput():
                 window.image_input.setPixmap(img2map(frame))
         else:
             window.status.setText('Unable to align')
+            window.certeza.setText(' ')
             window.image_input.setPixmap(img2map(frame))
 
 
