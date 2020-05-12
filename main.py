@@ -10,6 +10,9 @@ from PyQt5.QtCore import QTimer
 import numpy as np
 import tensorflow as tf
 from scipy import misc
+import sound_utils
+import pyaudio
+import wave
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Only to remove de AVX2 instruction warning
 
@@ -20,10 +23,17 @@ train_img = "./train_img"
 cam_number = 0
 c = 0
 
+chunk = 1024
+sample_format = pyaudio.paInt16
+fs = 44100
+seconds = 5
+frames = []
+
 with tf.Graph().as_default():
     # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
     # sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
-    settings = tf.ConfigProto(intra_op_parallelism_threads=3, inter_op_parallelism_threads=3, log_device_placement=False)
+    settings = tf.ConfigProto(intra_op_parallelism_threads=3, inter_op_parallelism_threads=3,
+                              log_device_placement=False)
     sess = tf.Session(config=settings)
     # Easter egg
     print('████░ █████░ ████░ ████░ ██░   █░ ████░ █████░')
@@ -41,7 +51,7 @@ with tf.Graph().as_default():
         margin = 44
         frame_interval = 3
         batch_size = 1000
-        image_size = 160 #182
+        image_size = 160  # 182
         input_image_size = 160
 
         HumanNames = os.listdir(train_img)
@@ -85,6 +95,7 @@ def cameraOff():
     window.image_input.setPixmap(QPixmap("black.png"))
     window.status.setText("Camera Off")
 
+
 def grabImageInput():
     if not cap.isOpened():
         cameraOn()
@@ -93,7 +104,7 @@ def grabImageInput():
 
     if (c % time_f == 0):
         if frame.ndim == 2:
-            #frame = facenet.to_rgb(frame)
+            # frame = facenet.to_rgb(frame)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = frame[:, :, 0:3]
         bounding_boxes, _ = detect_face.detect_face(frame, minsize, pnet, rnet, onet, threshold, factor)  # MTCNN
@@ -118,10 +129,11 @@ def grabImageInput():
                     continue
 
                 cropped.append(frame[bbox[i][1]:bbox[i][3], bbox[i][0]:bbox[i][2], :])
-                #cropped[i] = facenet.flip(cropped[i], False)
-                #scaled.append(misc.imresize(cropped[i], (image_size, image_size), interp='bilinear'))
-                #scaled[i] = cv2.resize(scaled[i], (input_image_size, input_image_size), interpolation=cv2.INTER_CUBIC)
-                scaled.append(cv2.resize(cropped[i], (input_image_size, input_image_size), interpolation=cv2.INTER_NEAREST))
+                # cropped[i] = facenet.flip(cropped[i], False)
+                # scaled.append(misc.imresize(cropped[i], (image_size, image_size), interp='bilinear'))
+                # scaled[i] = cv2.resize(scaled[i], (input_image_size, input_image_size), interpolation=cv2.INTER_CUBIC)
+                scaled.append(
+                    cv2.resize(cropped[i], (input_image_size, input_image_size), interpolation=cv2.INTER_NEAREST))
                 scaled[i] = facenet.prewhiten(scaled[i])  # Pixel range normalization
                 scaled_reshape.append(scaled[i].reshape(-1, input_image_size, input_image_size, 3))
 
@@ -137,7 +149,8 @@ def grabImageInput():
                     if HumanNames[best_class_indices[0]] == H_i:
                         if best_class_probability > 0.45:
                             result_name = HumanNames[best_class_indices[0]]
-                            cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (105, 195, 45), 1)
+                            cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                                        (105, 195, 45), 1)
                             window.certeza.setText("Probability: %.2f %%" % (best_class_probability[0] * 100))
                         else:
                             window.certeza.setText("Unknown Face")
@@ -149,6 +162,35 @@ def grabImageInput():
             window.image_input.setPixmap(img2map(frame))
 
 
+def init_recording():
+    p = pyaudio.PyAudio()
+    window.sound_status.setText("Recording...")
+    stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
+
+    frames = []
+
+    for i in range(0, int(fs / chunk * seconds)):
+        data = stream.read(chunk)
+        frames.append(data)
+
+    p.close(stream)
+    p.terminate()
+
+    window.sound_status.setText("Recording stopped.")
+    wf = wave.open("output.wav", 'wb')
+    wf.setnchannels(nchannels=1)
+    wf.setsampwidth(p.get_sample_size(sample_format))
+    wf.setframerate(fs)
+    wf.writeframes(b''.join(frames))
+    wf.close()
+
+
+def stop_recording():
+    window.sound_status.setText("Stopping recording...")
+
+    window.sound_status.setText("Recording stopped.")
+
+
 if __name__ == "__main__":
     print('Loading user interface...')
     cap = cv2.VideoCapture(cam_number)
@@ -157,6 +199,8 @@ if __name__ == "__main__":
     window.image_input.setPixmap(QPixmap("black.png"))
     window.button_cameraOn.clicked.connect(cameraOn)
     window.button_cameraOff.clicked.connect(cameraOff)
+    window.start_recording.clicked.connect(init_recording)
+    window.stop_recording.clicked.connect(stop_recording)
     window.image_input.setScaledContents(True)
     qtimerCamera = QTimer()
     qtimerCamera.timeout.connect(grabImageInput)
