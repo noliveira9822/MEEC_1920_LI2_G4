@@ -44,28 +44,36 @@ def feature_extract(filename, **kwargs):
 
 
 def load_commands_data(test_size=0.2):
-    x, words = [], []
-    for file in glob.glob("sound/*/*.wav"):
-        basename = os.path.basename(file)
-        comando = basename.split("_")[1]
-        words.append(comando)
-        # grupo.append([basename.split('_')[0]])
+    x, y = [], []
+    for folder in glob.glob("sound\G*"):
+        for file in glob.glob(folder + "\*.wav"):
+            basename = os.path.basename(file)
+            command = basename.split("_")[1]
+            with soundfile.SoundFile(file) as sound_file:
+                data = sound_file.read(dtype="float32")
+                if len(data) == 0:
+                    print("Ficheiro: " + file + " vazio")
+                    continue
+            features = feature_extract(file, mfcc = True, chroma = True, mel = True)
+            x.append(features)
+            y.append(command)
 
-        features = feature_extract(file, mfcc=True, chroma=True, mel=True)
-        x.append(features)
-    print(words)
-    return train_test_split(np.array(x), words, test_size=test_size, random_state=8)
+    return train_test_split(np.array(x), y, test_size=test_size, random_state=8)
 
 
 def load_groups_data(test_size=0.2):
-    x, grupos = [], []
-    for file in glob.glob("sound/*/*.wav"):
-        basename = os.path.basename(file)
-        grupo = basename.split("_")[0]
-        grupos.append(grupo)
-        # grupo.append([basename.split('_')[0]])
+    x, y = [], []
+    for folder in glob.glob("sound\G*"):
+        grupo = folder.split("\\")[1]
+        print(grupo)
+        for file in glob.glob(folder + "\*.wav"):
+            with soundfile.SoundFile(file) as sound_file:
+                data = sound_file.read(dtype="float32")
+                if len(data) == 0:
+                    print("Ficheiro: " + file + " vazio")
+                    continue
+            features = feature_extract(file, mfcc=True, chroma=True, mel=True)
+            x.append(features)
+            y.append(grupo)
 
-        features = feature_extract(file, mfcc=True, chroma=True, mel=True)
-        x.append(features)
-    print(grupos)
-    return train_test_split(np.array(x), grupos, test_size=test_size, random_state=8)
+    return train_test_split(np.array(x), y, test_size=test_size, random_state=7)

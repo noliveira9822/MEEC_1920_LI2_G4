@@ -8,7 +8,7 @@ import pickle
 def init_model_params():
     model_params = {
         'alpha': 0.01,
-        'batch_size': 250,
+        'batch_size': 256,
         'epsilon': 1e-08,
         'hidden_layer_sizes': (300,),
         'learning_rate': 'adaptive',

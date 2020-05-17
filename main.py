@@ -20,13 +20,17 @@ model_dir = './model/20180402-114759.pb'
 classifier_filename = './class/classifier.pkl'
 npy = './npy'
 train_img = "./train_img"
+
+commands_model = './sound_models/mlp_classifier_commands.model'
+groups_model = './sound_models/mlp_classifier_groups.model'
+
 cam_number = 0
 c = 0
 
 chunk = 1024
 sample_format = pyaudio.paInt16
 fs = 44100
-seconds = 5
+seconds = 2
 frames = []
 
 with tf.Graph().as_default():
@@ -163,8 +167,9 @@ def grabImageInput():
 
 
 def init_recording():
-    p = pyaudio.PyAudio()
+
     window.sound_status.setText("Recording...")
+    p = pyaudio.PyAudio()
     stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
 
     frames = []
@@ -184,10 +189,14 @@ def init_recording():
     wf.writeframes(b''.join(frames))
     wf.close()
 
+    command_model = pickle.load(open(commands_model, "rb"))
+    features = sound_utils.feature_extract('output.wav', mfcc=True, chroma=True, mel=True).reshape(1, -1)
+    predictions = command_model.predict(features)[0]
+    print(predictions)
+
 
 def stop_recording():
     window.sound_status.setText("Stopping recording...")
-
     window.sound_status.setText("Recording stopped.")
 
 
