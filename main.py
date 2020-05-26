@@ -27,12 +27,6 @@ groups_model = './sound_models/mlp_classifier_groups.model'
 cam_number = 0
 c = 0
 
-chunk = 1024
-sample_format = pyaudio.paInt16
-fs = 44100
-seconds = 2
-frames = []
-
 with tf.Graph().as_default():
     # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
     # sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
@@ -167,11 +161,15 @@ def grabImageInput():
 
 
 def init_recording():
-
+    '''
     window.sound_status.setText("Recording...")
     p = pyaudio.PyAudio()
     stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
 
+    chunk = 1024
+    sample_format = pyaudio.paInt16
+    fs = 44100
+    seconds = 2
     frames = []
 
     for i in range(0, int(fs / chunk * seconds)):
@@ -188,16 +186,27 @@ def init_recording():
     wf.setframerate(fs)
     wf.writeframes(b''.join(frames))
     wf.close()
-
+    '''
     command_model = pickle.load(open(commands_model, "rb"))
+    group_model = pickle.load(open(groups_model, 'rb'))
     features = sound_utils.feature_extract('output.wav', mfcc=True, chroma=True, mel=True).reshape(1, -1)
-    predictions = command_model.predict(features)[0]
-    print(predictions)
+    predictions_command = command_model.predict(features)
+    predictions_group = group_model.predict(features)
+    print(command_model.predict(features))
+    print(group_model.predict(features))
+    print(predictions_command, " comando")
+    window.sound_word_guess.setText("Comando: " + str(predictions_command[0]))
+    print(predictions_group, " grupo")
+    window.sound_group_guess.setText("Grupo: " + str(predictions_group[0]))
 
 
 def stop_recording():
     window.sound_status.setText("Stopping recording...")
     window.sound_status.setText("Recording stopped.")
+
+
+def quit_application():
+    app.exit(0)
 
 
 if __name__ == "__main__":
@@ -210,6 +219,7 @@ if __name__ == "__main__":
     window.button_cameraOff.clicked.connect(cameraOff)
     window.start_recording.clicked.connect(init_recording)
     window.stop_recording.clicked.connect(stop_recording)
+    window.quit_btn.clicked.connect(quit_application)
     window.image_input.setScaledContents(True)
     qtimerCamera = QTimer()
     qtimerCamera.timeout.connect(grabImageInput)

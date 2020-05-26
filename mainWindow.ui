@@ -144,60 +144,6 @@
      <string/>
     </property>
    </widget>
-   <widget class="QWidget" name="layoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>490</y>
-      <width>120</width>
-      <height>68</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
-     </property>
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Realizado por:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Nuno Oliveira 13290</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Pedro Martins 14171</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
@@ -211,13 +157,13 @@
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>430</x>
       <y>230</y>
       <width>174</width>
-      <height>67</height>
+      <height>86</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -249,13 +195,85 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="sound_guess">
+        <widget class="QLabel" name="sound_word_guess">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="sound_group_guess">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
       </layout>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>490</y>
+      <width>203</width>
+      <height>66</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Realizado por:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Nuno Oliveira 13290</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Pedro Martins 14171</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="quit_btn">
+       <property name="text">
+        <string>Quit</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>

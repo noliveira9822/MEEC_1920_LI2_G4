@@ -42,7 +42,6 @@ def feature_extract(filename, **kwargs):
 
     return result
 
-
 def load_commands_data(test_size=0.2):
     x, y = [], []
     for folder in glob.glob("sound\G*"):
@@ -58,8 +57,7 @@ def load_commands_data(test_size=0.2):
             x.append(features)
             y.append(command)
 
-    return train_test_split(np.array(x), y, test_size=test_size, random_state=8)
-
+    return train_test_split(np.array(x), y, test_size=test_size, random_state=7)
 
 def load_groups_data(test_size=0.2):
     x, y = [], []
