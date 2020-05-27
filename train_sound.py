@@ -8,7 +8,7 @@ import pickle
 def init_model_params():
     model_params = {
         'alpha': 0.01,
-        #'batch_size': auto,
+        # 'batch_size': auto,
         'epsilon': 1e-8,
         'hidden_layer_sizes': (300,),
         'learning_rate': 'adaptive',
@@ -28,6 +28,7 @@ def train_commands_model(test_size):
 
     print("Accuracy: {:.2f}%".format(accuracy * 100))
     print(classification_report(y_true=y_test, y_pred=y_pred))
+    print(confusion_matrix(y_true=y_test, y_pred=y_pred))
 
     if not os.path.isdir("sound_models"):
         os.mkdir("sound_models")
@@ -46,6 +47,7 @@ def train_groups_model(test_size):
 
     print("Accuracy: {:.2f}%".format(accuracy * 100))
     print(classification_report(y_true=y_test, y_pred=y_pred))
+    print(confusion_matrix(y_true=y_test, y_pred=y_pred))
 
     if not os.path.isdir("sound_models"):
         os.mkdir("sound_models")
