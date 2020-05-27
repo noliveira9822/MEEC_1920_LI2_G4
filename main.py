@@ -24,6 +24,9 @@ train_img = "./train_img"
 commands_model = './sound_models/mlp_classifier_commands.model'
 groups_model = './sound_models/mlp_classifier_groups.model'
 
+command_model = pickle.load(open(commands_model, "rb"))
+group_model = pickle.load(open(groups_model, 'rb'))
+
 cam_number = 0
 c = 0
 
@@ -161,18 +164,17 @@ def grabImageInput():
 
 
 def init_recording():
-    '''
     window.sound_status.setText("Recording...")
     p = pyaudio.PyAudio()
-    stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
-
     chunk = 1024
     sample_format = pyaudio.paInt16
     fs = 44100
     seconds = 2
+    stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
+
     frames = []
 
-    for i in range(0, int(fs / chunk * seconds)):
+    for i in range(0, int(fs / (chunk * seconds))):
         data = stream.read(chunk)
         frames.append(data)
 
@@ -180,15 +182,14 @@ def init_recording():
     p.terminate()
 
     window.sound_status.setText("Recording stopped.")
+
     wf = wave.open("output.wav", 'wb')
-    wf.setnchannels(nchannels=1)
+    wf.setnchannels(1)
     wf.setsampwidth(p.get_sample_size(sample_format))
     wf.setframerate(fs)
-    wf.writeframes(b''.join(frames))
+    wf.writeframes(b"".join(frames))
     wf.close()
-    '''
-    command_model = pickle.load(open(commands_model, "rb"))
-    group_model = pickle.load(open(groups_model, 'rb'))
+
     features = sound_utils.feature_extract('output.wav', mfcc=True, chroma=True, mel=True).reshape(1, -1)
     predictions_command = command_model.predict(features)
     predictions_group = group_model.predict(features)
