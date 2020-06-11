@@ -13,6 +13,8 @@ from scipy import misc
 import sound_utils
 import pyaudio
 import wave
+from librosa.util import normalize
+import threading
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Only to remove de AVX2 instruction warning
 
@@ -21,8 +23,8 @@ classifier_filename = './class/classifier.pkl'
 npy = './npy'
 train_img = "./train_img"
 
-commands_model = './sound_models/mlp_classifier_commands.model'
-groups_model = './sound_models/mlp_classifier_groups.model'
+commands_model = './sound_models/mlp_classifier_commands_2705.model'
+groups_model = './sound_models/mlp_classifier_groups_2705.model'
 
 command_model = pickle.load(open(commands_model, "rb"))
 group_model = pickle.load(open(groups_model, 'rb'))
@@ -82,7 +84,7 @@ def cameraOn():
     window.status.setText("Turning camera On")
     if not cap.isOpened():
         cap.open(cam_number)
-    qtimerCamera.start(80)
+    # qtimerCamera.start(80)
     cap.set(3, 320)
     cap.set(4, 240)
     window.status.setText("Capturing image...")
@@ -91,10 +93,12 @@ def cameraOn():
 def cameraOff():
     window.status.setText("Turning camera Off")
     if cap.isOpened():
-        qtimerCamera.stop()
+        # qtimerCamera.stop()
         cap.release()
+
     window.image_input.setPixmap(QPixmap("black.png"))
     window.status.setText("Camera Off")
+    window.certeza.setText(" ")
 
 
 def grabImageInput():
@@ -150,7 +154,8 @@ def grabImageInput():
                     if HumanNames[best_class_indices[0]] == H_i:
                         if best_class_probability > 0.45:
                             result_name = HumanNames[best_class_indices[0]]
-                            cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                            cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1] - 5), cv2.FONT_HERSHEY_SIMPLEX,
+                                        0.7,
                                         (105, 195, 45), 1)
                             window.certeza.setText("Probability: %.2f %%" % (best_class_probability[0] * 100))
                         else:
@@ -169,7 +174,7 @@ def init_recording():
     chunk = 1024
     sample_format = pyaudio.paInt16
     fs = 44100
-    seconds = 2
+    seconds = 1.5
     stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
 
     frames = []

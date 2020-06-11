@@ -18,14 +18,14 @@ def feature_extract(filename, **kwargs):
         samplerate = sound_file.samplerate
 
         # normaliza o sinal
-        x = librosa.util.normalize(x)
+        x_norm = librosa.util.normalize(x)
 
         if chroma or contrast:
-            stft = np.abs(librosa.stft(x))
+            stft = np.abs(librosa.stft(x_norm))
         result = np.array([])
 
         if mfcc:
-            mfccs = np.mean(librosa.feature.mfcc(y=x, sr=samplerate, n_mfcc=40).T, axis=0)
+            mfccs = np.mean(librosa.feature.mfcc(y=x_norm, sr=samplerate, n_mfcc=40).T, axis=0)
             result = np.hstack((result, mfccs))
 
         if chroma:
@@ -33,16 +33,17 @@ def feature_extract(filename, **kwargs):
             result = np.hstack((result, chroma))
 
         if mel:
-            mel = np.mean(librosa.feature.melspectrogram(x, sr=samplerate).T, axis=0)
+            mel = np.mean(librosa.feature.melspectrogram(x_norm, sr=samplerate).T, axis=0)
             result = np.hstack((result, mel))
 
         if tonnetz:
-            tonnetz = np.mean(librosa.feature.tonnetz(y=librosa.effects.harmonic(x), sr=samplerate).T, axis=0)
+            tonnetz = np.mean(librosa.feature.tonnetz(y=librosa.effects.harmonic(x_norm), sr=samplerate).T, axis=0)
             result = np.hstack((result, tonnetz))
 
     return result
 
-def load_commands_data(test_size=0.2):
+
+def load_commands_data(test_size=0.25):
     x, y = [], []
     for folder in glob.glob("sound\G*"):
         for file in glob.glob(folder + "\*.wav"):
@@ -59,7 +60,8 @@ def load_commands_data(test_size=0.2):
 
     return train_test_split(np.array(x), y, test_size=test_size, random_state=7)
 
-def load_groups_data(test_size=0.2):
+
+def load_groups_data(test_size=0.25):
     x, y = [], []
     for folder in glob.glob("sound\G*"):
         grupo = folder.split("\\")[1]
