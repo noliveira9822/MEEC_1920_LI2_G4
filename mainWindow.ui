@@ -29,7 +29,7 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>30</x>
       <y>260</y>
       <width>164</width>
       <height>75</height>
@@ -113,7 +113,7 @@
    <widget class="QLabel" name="image_input">
     <property name="geometry">
      <rect>
-      <x>11</x>
+      <x>30</x>
       <y>11</y>
       <width>330</width>
       <height>250</height>
@@ -160,8 +160,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>430</x>
-      <y>230</y>
+      <x>440</x>
+      <y>260</y>
       <width>174</width>
       <height>86</height>
      </rect>
@@ -276,6 +276,22 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QWidget" name="sound_graph" native="true">
+    <property name="geometry">
+     <rect>
+      <x>440</x>
+      <y>35</y>
+      <width>330</width>
+      <height>200</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>330</width>
+      <height>200</height>
+     </size>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

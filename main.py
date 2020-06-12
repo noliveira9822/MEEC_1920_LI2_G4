@@ -7,6 +7,7 @@ import detect_face
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import QTimer
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from scipy import misc
@@ -15,6 +16,7 @@ import pyaudio
 import wave
 from librosa.util import normalize
 import threading
+import time
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Only to remove de AVX2 instruction warning
 
@@ -31,13 +33,15 @@ group_model = pickle.load(open(groups_model, 'rb'))
 
 cam_number = 0
 c = 0
+chunk = 1024
+fs = 44100
 
 with tf.Graph().as_default():
-    # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
-    # sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
-    settings = tf.ConfigProto(intra_op_parallelism_threads=3, inter_op_parallelism_threads=3,
-                              log_device_placement=False)
-    sess = tf.Session(config=settings)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
+    sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+    #settings = tf.ConfigProto(intra_op_parallelism_threads=3, inter_op_parallelism_threads=3,
+    #                          log_device_placement=False)
+    #sess = tf.Session(config=settings)
     # Easter egg
     print('████░ █████░ ████░ ████░ ██░   █░ ████░ █████░')
     print('█░    █░  █░ █░    █░    █░█░  █░ █░      █░')
@@ -84,7 +88,7 @@ def cameraOn():
     window.status.setText("Turning camera On")
     if not cap.isOpened():
         cap.open(cam_number)
-    # qtimerCamera.start(80)
+    qtimerCamera.start(80)
     cap.set(3, 320)
     cap.set(4, 240)
     window.status.setText("Capturing image...")
@@ -93,7 +97,7 @@ def cameraOn():
 def cameraOff():
     window.status.setText("Turning camera Off")
     if cap.isOpened():
-        # qtimerCamera.stop()
+        qtimerCamera.stop()
         cap.release()
 
     window.image_input.setPixmap(QPixmap("black.png"))
@@ -152,10 +156,9 @@ def grabImageInput():
                 cv2.rectangle(frame, (bbox[i][0], bbox[i][1]), (bbox[i][2], bbox[i][3]), (105, 189, 45), 1)
                 for H_i in HumanNames:
                     if HumanNames[best_class_indices[0]] == H_i:
-                        if best_class_probability > 0.45:
+                        if best_class_probability > 0.50:
                             result_name = HumanNames[best_class_indices[0]]
-                            cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1] - 5), cv2.FONT_HERSHEY_SIMPLEX,
-                                        0.7,
+                            cv2.putText(frame, result_name, (bbox[i][0], bbox[i][1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
                                         (105, 195, 45), 1)
                             window.certeza.setText("Probability: %.2f %%" % (best_class_probability[0] * 100))
                         else:

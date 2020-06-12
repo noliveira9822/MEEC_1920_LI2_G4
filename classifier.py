@@ -36,6 +36,7 @@ import math
 import pickle
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import classification_report, confusion_matrix
 
 
 def main(args):
@@ -115,6 +116,7 @@ def main(args):
                 print('Loaded classifier model from file "%s"' % classifier_filename_exp)
 
                 predictions = model.predict_proba(emb_array)
+                predictions1 = model.predict(emb_array)
                 best_class_indices = np.argmax(predictions, axis=1)
                 best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
                 
@@ -123,6 +125,10 @@ def main(args):
                     
                 accuracy = np.mean(np.equal(best_class_indices, labels))
                 print('Accuracy: %.3f' % accuracy)
+                print("Classification Report")
+                print(classification_report(y_true=labels, y_pred=predictions1))
+                print(confusion_matrix(y_true=labels, y_pred=predictions1))
+
                 
             
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):
