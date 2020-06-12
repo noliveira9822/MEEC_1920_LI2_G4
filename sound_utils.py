@@ -4,6 +4,7 @@ import librosa
 import glob
 import os
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 
 def feature_extract(filename, **kwargs):
@@ -18,7 +19,13 @@ def feature_extract(filename, **kwargs):
         samplerate = sound_file.samplerate
 
         # normaliza o sinal
-        x_norm = librosa.util.normalize(x)
+        # x_norm = librosa.util.normalize(x)
+        scaler = StandardScaler()
+        # print(x.shape) 41984,
+        scaler.fit(x.reshape(-1, 1))
+        x_norma = scaler.transform(x.reshape(-1, 1))
+        x_norm = x_norma.reshape(-1, )
+        # print(x_norm.shape)
 
         if chroma or contrast:
             stft = np.abs(librosa.stft(x_norm))
