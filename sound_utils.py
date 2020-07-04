@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
-def feature_extract(filename, **kwargs):
+def feature_extract(filename, shift_dir, **kwargs):
     mfcc = kwargs.get("mfcc")
     chroma = kwargs.get("chroma")
     mel = kwargs.get("mel")
@@ -18,14 +18,40 @@ def feature_extract(filename, **kwargs):
         x = sound_file.read(dtype="float32")
         samplerate = sound_file.samplerate
 
+        '''# adds noise
+        if (noise):
+            noise_to_Apply = np.random.randn(len(x))
+            augmented_data = x + 0.2 * noise_to_Apply
+            # Cast back to same data type
+            augmented_data = augmented_data.astype(type(x[0]))
+            x = augmented_data
+'''
+        to_shift = np.random.randint(samplerate * 2)
+        if shift_dir == 'right':
+            to_shift = -to_shift
+        elif shift_dir == 'both':
+            direction = np.random.randint(0, 2)
+            if direction == 1:
+                to_shift = -to_shift
+
+        augmented_data = np.roll(x, to_shift)
+
+        # Set to silence for heading/ tailing
+        if to_shift > 0:
+            augmented_data[:to_shift] = 0
+        else:
+            augmented_data[to_shift:] = 0
+
         # normaliza o sinal
-        # x_norm = librosa.util.normalize(x)
-        scaler = StandardScaler()
+        print(x)
+        x_norm = librosa.util.normalize(x)
+        # scaler = StandardScaler()
         # print(x.shape) 41984,
-        scaler.fit(x.reshape(-1, 1))
-        x_norma = scaler.transform(x.reshape(-1, 1))
-        x_norm = x_norma.reshape(-1, )
+        # scaler.fit(x.reshape(-1, 1))
+        # x_norma = scaler.transform(x.reshape(-1, 1))
+        # x_norm = x_norma.reshape(-1, )
         # print(x_norm.shape)
+        print(x_norm)
 
         if chroma or contrast:
             stft = np.abs(librosa.stft(x_norm))
@@ -61,7 +87,7 @@ def load_commands_data(test_size=0.25):
                 if len(data) == 0:
                     print("Ficheiro: " + file + " vazio")
                     continue
-            features = feature_extract(file, mfcc = True, chroma = True, mel = True)
+            features = feature_extract(file, shift_dir="right", mfcc=True, chroma=True, mel=True)
             x.append(features)
             y.append(command)
 
@@ -79,7 +105,7 @@ def load_groups_data(test_size=0.25):
                 if len(data) == 0:
                     print("Ficheiro: " + file + " vazio")
                     continue
-            features = feature_extract(file, mfcc=True, chroma=True, mel=True)
+            features = feature_extract(file, shift_dir='both', mfcc=True, chroma=True, mel=True)
             x.append(features)
             y.append(grupo)
 

@@ -8,9 +8,9 @@ import pickle
 def init_model_params():
     model_params = {
         'alpha': 0.01,
-        # 'batch_size': auto,
+        # 'batch_size': 254,
         'epsilon': 1e-8,
-        'hidden_layer_sizes': (300,),
+        'hidden_layer_sizes': (600, 80),
         'learning_rate': 'adaptive',
         'max_iter': 500,
     }
@@ -33,7 +33,7 @@ def train_commands_model(test_size):
     if not os.path.isdir("sound_models"):
         os.mkdir("sound_models")
 
-    pickle.dump(model_commands, open("sound_models/mlp_classifier_commands.model", "wb"))
+    pickle.dump(model_commands, open("sound_models/mlp_classifier_commands_0407.model", "wb"))
 
 
 def train_groups_model(test_size):
@@ -52,4 +52,4 @@ def train_groups_model(test_size):
     if not os.path.isdir("sound_models"):
         os.mkdir("sound_models")
 
-    pickle.dump(model_groups, open("sound_models/mlp_classifier_groups.model", "wb"))
+    pickle.dump(model_groups, open("sound_models/mlp_classifier_groups_0407.model", "wb"))
