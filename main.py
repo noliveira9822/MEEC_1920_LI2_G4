@@ -39,9 +39,9 @@ fs = 44100
 with tf.Graph().as_default():
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
     sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
-    #settings = tf.ConfigProto(intra_op_parallelism_threads=3, inter_op_parallelism_threads=3,
+    # settings = tf.ConfigProto(intra_op_parallelism_threads=3, inter_op_parallelism_threads=3,
     #                          log_device_placement=False)
-    #sess = tf.Session(config=settings)
+    # sess = tf.Session(config=settings)
     # Easter egg
     print('████░ █████░ ████░ ████░ ██░   █░ ████░ █████░')
     print('█░    █░  █░ █░    █░    █░█░  █░ █░      █░')
@@ -174,9 +174,7 @@ def grabImageInput():
 def init_recording():
     window.sound_status.setText("Recording...")
     p = pyaudio.PyAudio()
-    chunk = 1024
     sample_format = pyaudio.paInt16
-    fs = 44100
     seconds = 1.5
     stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
 
@@ -198,7 +196,9 @@ def init_recording():
     wf.writeframes(b"".join(frames))
     wf.close()
 
-    features = sound_utils.feature_extract('output.wav', mfcc=True, chroma=True, mel=True).reshape(1, -1)
+    features = sound_utils.feature_extract('output.wav', shift_dir="none", mfcc=True, chroma=True, mel=True).reshape(1,
+                                                                                                                     -1)
+
     predictions_command = command_model.predict(features)
     predictions_group = group_model.predict(features)
     print(command_model.predict(features))
