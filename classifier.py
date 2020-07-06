@@ -36,7 +36,7 @@ import math
 import pickle
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 
 def main(args):
@@ -61,7 +61,7 @@ def main(args):
             for cls in dataset:
                 assert(len(cls.image_paths) > 0, 'There must be at least one image for each class in the dataset')
 
-            paths, labels = facenet.get_image_paths_and_labels(dataset)
+            paths, y_true = facenet.get_image_paths_and_labels(dataset)
             
             print('Number of classes: %d' % len(dataset))
             print('Number of images: %d' % len(paths))
@@ -97,7 +97,7 @@ def main(args):
                 print('Training classifier')
                 #model = SVC(kernel='linear', probability=True, )
                 model = MLPClassifier(learning_rate='adaptive', verbose=True, max_iter=500)
-                model.fit(emb_array, labels)
+                model.fit(emb_array, y_true)
             
                 # Create a list of class names
                 class_names = [cls.name.replace('_', ' ') for cls in dataset]
@@ -116,21 +116,21 @@ def main(args):
                 print('Loaded classifier model from file "%s"' % classifier_filename_exp)
 
                 predictions = model.predict_proba(emb_array)
-                predictions1 = model.predict(emb_array)
                 best_class_indices = np.argmax(predictions, axis=1)
+                class_indices = np.array(predictions)
                 best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
+                bool_pred = predictions > 0.5
                 
                 for i in range(len(best_class_indices)):
                     print('%4d  %s: %.3f' % (i, class_names[best_class_indices[i]], best_class_probabilities[i]))
-                    
-                accuracy = np.mean(np.equal(best_class_indices, labels))
+                    #print(bool_pred[i])
+
+                accuracy = accuracy_score(y_true=y_true, y_pred=best_class_indices)
                 print('Accuracy: %.3f' % accuracy)
                 print("Classification Report")
-                print(classification_report(y_true=labels, y_pred=predictions1))
-                print(confusion_matrix(y_true=labels, y_pred=predictions1))
+                print(classification_report(y_true=y_true, y_pred=best_class_indices))
+                print(confusion_matrix(y_true=y_true, y_pred=best_class_indices))
 
-                
-            
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):
     train_set = []
     test_set = []
