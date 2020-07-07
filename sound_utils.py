@@ -7,14 +7,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
-def feature_extract_classify(data, **kwargs):
+def feature_extract_classify(data, samplerate, **kwargs):
     mfcc = kwargs.get("mfcc")
     chroma = kwargs.get("chroma")
     mel = kwargs.get("mel")
     contrast = kwargs.get("contrast")
     tonnetz = kwargs.get("tonnetz")
-
-    samplerate = 44100
 
     x_norm = librosa.util.normalize(data)
 

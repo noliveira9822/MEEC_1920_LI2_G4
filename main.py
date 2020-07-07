@@ -39,6 +39,7 @@ chunk = 1024
 fs = 44100
 sample_format = pyaudio.paInt16
 
+temp_array = np.zeros((1, chunk))
 p = pyaudio.PyAudio()
 Stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
 p.close(Stream)
@@ -182,53 +183,36 @@ def grabImageInput():
 
 
 def ler_som(in_data, frame_count, time_info, status):
-    data = np.frombuffer(in_data, dtype=np.int16)
-    return (data, pyaudio.paContinue)
+    dados = np.frombuffer(in_data, dtype=np.int16)
+    data = dados.astype("float")
+    print(data.shape)
+
+    features = sound_utils.feature_extract_classify(data, fs, mfcc=True, chroma=True, mel=True)
+    predictions_command = command_model.predict(features.reshape(1, -1))
+    predictions_group = group_model.predict(features.reshape(1, -1))
+
+    print(predictions_command)
+
+    window.sound_word_guess.setText("Comando: " + str(predictions_command[0]))
+    window.sound_group_guess.setText("Grupo: " + str(predictions_group[0]))
+
+    return data, pyaudio.paContinue
 
 
 def init_recording():
     window.sound_status.setText("Recording...")
     # seconds = 1.5
     global Stream
-    Stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True,
+    Stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=fs * 2, input=True,
                     stream_callback=ler_som)
-
-
-'''
-    frames = []
-
-    for i in range(0, int(fs / (chunk * seconds))):
-        data = stream.read(chunk)
-        frames.append(data)
-        #window.sound_graph.canvas.ax.plot(data)
-        #window.sound_graph.canvas.draw()
-
-    window.sound_status.setText("Recording stopped.")
-
-    wf = wave.open("output.wav", 'wb')
-    wf.setnchannels(1)
-    wf.setsampwidth(p.get_sample_size(sample_format))
-    wf.setframerate(fs)
-    wf.writeframes(b"".join(frames))
-    wf.close()
-
-    features = sound_utils.feature_extract('output.wav', shift_dir="none", mfcc=True, chroma=True, mel=True).reshape(1,
-                                                                                                                     -1)
-    predictions_command = command_model.predict(features)
-    predictions_group = group_model.predict(features)
-    print(command_model.predict(features))
-    print(group_model.predict(features))
-    print(predictions_command, " comando")
-    window.sound_word_guess.setText("Comando: " + str(predictions_command[0]))
-    print(predictions_group, " grupo")
-    window.sound_group_guess.setText("Grupo: " + str(predictions_group[0]))
-'''
 
 def stop_recording():
     window.sound_status.setText("Stopping recording...")
     global Stream
     p.close(Stream)
     window.sound_status.setText("Recording stopped.")
+    window.sound_word_guess.setText(" ")
+    window.sound_group_guess.setText(" ")
 
 
 def quit_application():
@@ -240,7 +224,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         super(ApplicationWindow, self).__init__()
         uic.loadUi("mainWindow.ui", self)
         self.image_input.setPixmap(QPixmap("black.png"))
-        #self.sound_graph = Figure()
+        # self.sound_graph = Figure()
 
         self.button_cameraOn.clicked.connect(cameraOn)
         self.button_cameraOff.clicked.connect(cameraOff)
