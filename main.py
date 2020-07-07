@@ -35,6 +35,11 @@ cam_number = 0
 c = 0
 chunk = 1024
 fs = 44100
+sample_format = pyaudio.paInt16
+
+p = pyaudio.PyAudio()
+Stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
+p.close(Stream)
 
 with tf.Graph().as_default():
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
@@ -171,21 +176,25 @@ def grabImageInput():
             window.image_input.setPixmap(img2map(frame))
 
 
+def ler_som(in_data, frame_count, time_info, status):
+    data = np.frombuffer(in_data, dtype=np.int16)
+    return (data, pyaudio.paContinue)
+
+
 def init_recording():
     window.sound_status.setText("Recording...")
-    p = pyaudio.PyAudio()
-    sample_format = pyaudio.paInt16
-    seconds = 1.5
-    stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True)
+    # seconds = 1.5
+    global Stream
+    Stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=chunk, input=True,
+                    stream_callback=ler_som)
 
+
+'''
     frames = []
 
     for i in range(0, int(fs / (chunk * seconds))):
         data = stream.read(chunk)
         frames.append(data)
-
-    p.close(stream)
-    p.terminate()
 
     window.sound_status.setText("Recording stopped.")
 
@@ -207,10 +216,12 @@ def init_recording():
     window.sound_word_guess.setText("Comando: " + str(predictions_command[0]))
     print(predictions_group, " grupo")
     window.sound_group_guess.setText("Grupo: " + str(predictions_group[0]))
-
+'''
 
 def stop_recording():
     window.sound_status.setText("Stopping recording...")
+    global Stream
+    p.close(Stream)
     window.sound_status.setText("Recording stopped.")
 
 

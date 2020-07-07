@@ -7,7 +7,41 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
-def feature_extract(filename, shift_dir, **kwargs):
+def feature_extract_classify(data, **kwargs):
+    mfcc = kwargs.get("mfcc")
+    chroma = kwargs.get("chroma")
+    mel = kwargs.get("mel")
+    contrast = kwargs.get("contrast")
+    tonnetz = kwargs.get("tonnetz")
+
+    samplerate = 44100
+
+    x_norm = librosa.util.normalize(data)
+
+    if chroma or contrast:
+        stft = np.abs(librosa.stft(x_norm))
+    result = np.array([])
+
+    if mfcc:
+        mfccs = np.mean(librosa.feature.mfcc(y=x_norm, sr=samplerate, n_mfcc=40).T, axis=0)
+        result = np.hstack((result, mfccs))
+
+    if chroma:
+        chroma = np.mean(librosa.feature.chroma_stft(S=stft, sr=samplerate).T, axis=0)
+        result = np.hstack((result, chroma))
+
+    if mel:
+        mel = np.mean(librosa.feature.melspectrogram(x_norm, sr=samplerate).T, axis=0)
+        result = np.hstack((result, mel))
+
+    if tonnetz:
+        tonnetz = np.mean(librosa.feature.tonnetz(y=librosa.effects.harmonic(x_norm), sr=samplerate).T, axis=0)
+        result = np.hstack((result, tonnetz))
+
+    return result
+
+
+def feature_extract_train(filename, shift_dir, **kwargs):
     mfcc = kwargs.get("mfcc")
     chroma = kwargs.get("chroma")
     mel = kwargs.get("mel")
@@ -87,7 +121,7 @@ def load_commands_data(test_size=0.25):
                 if len(data) == 0:
                     print("Ficheiro: " + file + " vazio")
                     continue
-            features = feature_extract(file, shift_dir="right", mfcc=True, chroma=True, mel=True)
+            features = feature_extract_train(file, shift_dir="right", mfcc=True, chroma=True, mel=True)
             x.append(features)
             y.append(command)
 
@@ -105,7 +139,7 @@ def load_groups_data(test_size=0.25):
                 if len(data) == 0:
                     print("Ficheiro: " + file + " vazio")
                     continue
-            features = feature_extract(file, shift_dir='both', mfcc=True, chroma=True, mel=True)
+            features = feature_extract_train(file, shift_dir='both', mfcc=True, chroma=True, mel=True)
             x.append(features)
             y.append(grupo)
 
