@@ -7,7 +7,9 @@ import detect_face
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import QTimer
-import matplotlib.pyplot as plt
+from matplotlib.backends.qt_compat import *
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavBar
+from matplotlib.figure import Figure
 import numpy as np
 import tensorflow as tf
 from scipy import misc
@@ -25,8 +27,8 @@ classifier_filename = './class/classifier.pkl'
 npy = './npy'
 train_img = "./train_img"
 
-commands_model = './sound_models/mlp_classifier_commands_2705.model'
-groups_model = './sound_models/mlp_classifier_groups_2705.model'
+commands_model = './sound_models/mlp_classifier_commands_0407.model'
+groups_model = './sound_models/mlp_classifier_groups_0407.model'
 
 command_model = pickle.load(open(commands_model, "rb"))
 group_model = pickle.load(open(groups_model, 'rb'))
@@ -68,8 +70,11 @@ with tf.Graph().as_default():
 
         HumanNames = os.listdir(train_img)
         HumanNames.sort()
-        print('Loading classifier model...')
+        print('Loading image models...')
         facenet.load_model(model_dir)
+        print('Loading sound models...')
+        print('Model filename: ' + commands_model)
+        print('Model filename: ' + groups_model)
         print('Loading classes...')
         images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
         embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
@@ -195,6 +200,8 @@ def init_recording():
     for i in range(0, int(fs / (chunk * seconds))):
         data = stream.read(chunk)
         frames.append(data)
+        #window.sound_graph.canvas.ax.plot(data)
+        #window.sound_graph.canvas.draw()
 
     window.sound_status.setText("Recording stopped.")
 
@@ -207,7 +214,6 @@ def init_recording():
 
     features = sound_utils.feature_extract('output.wav', shift_dir="none", mfcc=True, chroma=True, mel=True).reshape(1,
                                                                                                                      -1)
-
     predictions_command = command_model.predict(features)
     predictions_group = group_model.predict(features)
     print(command_model.predict(features))
@@ -226,23 +232,33 @@ def stop_recording():
 
 
 def quit_application():
-    app.exit(0)
+    qapp.exit(0)
+
+
+class ApplicationWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super(ApplicationWindow, self).__init__()
+        uic.loadUi("mainWindow.ui", self)
+        self.image_input.setPixmap(QPixmap("black.png"))
+        #self.sound_graph = Figure()
+
+        self.button_cameraOn.clicked.connect(cameraOn)
+        self.button_cameraOff.clicked.connect(cameraOff)
+
+        self.start_recording.clicked.connect(init_recording)
+        self.stop_recording.clicked.connect(stop_recording)
+
+        self.quit_btn.clicked.connect(quit_application)
+        self.image_input.setScaledContents(True)
+        self.show()
 
 
 if __name__ == "__main__":
     print('Loading user interface...')
     cap = cv2.VideoCapture(cam_number)
-    app = QtWidgets.QApplication(sys.argv)
-    window = uic.loadUi("mainWindow.ui")
-    window.image_input.setPixmap(QPixmap("black.png"))
-    window.button_cameraOn.clicked.connect(cameraOn)
-    window.button_cameraOff.clicked.connect(cameraOff)
-    window.start_recording.clicked.connect(init_recording)
-    window.stop_recording.clicked.connect(stop_recording)
-    window.quit_btn.clicked.connect(quit_application)
-    window.image_input.setScaledContents(True)
+    qapp = QtWidgets.QApplication(sys.argv)
+    window = ApplicationWindow()
     qtimerCamera = QTimer()
     qtimerCamera.timeout.connect(grabImageInput)
     print('Done!')
-    window.show()
-    app.exec()
+    qapp.exec()
