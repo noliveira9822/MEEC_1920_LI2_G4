@@ -277,7 +277,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="sound_graph" native="true">
+   <widget class="MplWidget" name="MplWidget" native="true">
     <property name="geometry">
      <rect>
       <x>440</x>
@@ -306,6 +306,14 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MplWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">mplwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

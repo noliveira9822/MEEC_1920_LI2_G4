@@ -8,8 +8,7 @@ from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import QTimer
 from matplotlib.backends.qt_compat import *
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavBar
-from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from scipy import misc
@@ -182,10 +181,11 @@ def grabImageInput():
             window.image_input.setPixmap(img2map(frame))
 
 
-def ler_som(in_data, frame_count, time_info, status):
+def sound_read(in_data, frame_count, time_info, status):
     dados = np.frombuffer(in_data, dtype=np.int16)
     data = dados.astype("float")
     print(data.shape)
+    window.plotgraph(data)
 
     features = sound_utils.feature_extract_classify(data, fs, mfcc=True, chroma=True, mel=True)
     predictions_command = command_model.predict(features.reshape(1, -1))
@@ -204,7 +204,8 @@ def init_recording():
     # seconds = 1.5
     global Stream
     Stream = p.open(format=sample_format, channels=1, rate=fs, frames_per_buffer=fs * 2, input=True,
-                    stream_callback=ler_som)
+                    stream_callback=sound_read)
+    #window.plotgraph(Stream.read(1024))
 
 def stop_recording():
     window.sound_status.setText("Stopping recording...")
@@ -213,7 +214,6 @@ def stop_recording():
     window.sound_status.setText("Recording stopped.")
     window.sound_word_guess.setText(" ")
     window.sound_group_guess.setText(" ")
-
 
 def quit_application():
     qapp.exit(0)
@@ -224,8 +224,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         super(ApplicationWindow, self).__init__()
         uic.loadUi("mainWindow.ui", self)
         self.image_input.setPixmap(QPixmap("black.png"))
-        # self.sound_graph = Figure()
-
         self.button_cameraOn.clicked.connect(cameraOn)
         self.button_cameraOff.clicked.connect(cameraOff)
 
@@ -236,6 +234,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.image_input.setScaledContents(True)
         self.show()
 
+    def plotgraph(self, stream):
+        self.MplWidget.canvas.axes.clear()
+        self.MplWidget.canvas.axes.plot(stream)
+        self.MplWidget.canvas.draw()
 
 if __name__ == "__main__":
     print('Loading user interface...')
