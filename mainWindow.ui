@@ -217,7 +217,7 @@
      <rect>
       <x>10</x>
       <y>490</y>
-      <width>203</width>
+      <width>207</width>
       <height>66</height>
      </rect>
     </property>
@@ -250,7 +250,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Nuno Oliveira 13290</string>
+          <string>Nuno Oliveira, 13290</string>
          </property>
         </widget>
        </item>
@@ -262,7 +262,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Pedro Martins 14171</string>
+          <string>Pedro Martins, 14171</string>
          </property>
         </widget>
        </item>
@@ -281,15 +281,15 @@
     <property name="geometry">
      <rect>
       <x>440</x>
-      <y>35</y>
+      <y>10</y>
       <width>330</width>
-      <height>200</height>
+      <height>250</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
       <width>330</width>
-      <height>200</height>
+      <height>250</height>
      </size>
     </property>
    </widget>
