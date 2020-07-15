@@ -20,8 +20,8 @@ Antes de treinar normalizar executando o ficheiro data_preprocess.py
 
 Para re treinar executar o seguinte comando
 
-python classifier.py TRAIN train_img model/20180402-114759.pb class/classifier_gpu.pkl --batch_size 10 --nrof_train_images_per_class 15 --use_split_dataset
+> python classifier.py TRAIN train_img model/20180402-114759.pb class/classifier_gpu.pkl --batch_size 10 --nrof_train_images_per_class 15 --use_split_dataset
 
 Para classificar o dataset executar o comando
 
-python classifier.py CLASSIFY train_img model/20180402-114759.pb class/classifier_gpu.pkl --batch_size 10 --nrof_train_images_per_class 15 --use_split_dataset
+> python classifier.py CLASSIFY train_img model/20180402-114759.pb class/classifier_gpu.pkl --batch_size 10 --nrof_train_images_per_class 15 --use_split_dataset
