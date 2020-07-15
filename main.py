@@ -19,10 +19,10 @@ from librosa.util import normalize
 import threading
 import time
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Only to remove de AVX2 instruction warning
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Only to remove the AVX2 instruction warning
 
 model_dir = './model/20180402-114759.pb'
-classifier_filename = './class/classifier.pkl'
+classifier_filename = './class/classifier_gpu.pkl'
 npy = './npy'
 train_img = "./train_img"
 
@@ -123,7 +123,6 @@ def grabImageInput():
 
     if (c % time_f == 0):
         if frame.ndim == 2:
-            # frame = facenet.to_rgb(frame)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = frame[:, :, 0:3]
         bounding_boxes, _ = detect_face.detect_face(frame, minsize, pnet, rnet, onet, threshold, factor)  # MTCNN

@@ -34,7 +34,6 @@ import os
 import sys
 import math
 import pickle
-from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
@@ -95,8 +94,7 @@ def main(args):
             if args.mode == 'TRAIN':
                 # Train classifier
                 print('Training classifier')
-                #model = SVC(kernel='linear', probability=True, )
-                model = MLPClassifier(learning_rate='adaptive', verbose=True, max_iter=500)
+                model = MLPClassifier(learning_rate='adaptive', verbose=True, max_iter=500, hidden_layer_sizes=(100, 50))
                 model.fit(emb_array, y_true)
             
                 # Create a list of class names
@@ -117,13 +115,10 @@ def main(args):
 
                 predictions = model.predict_proba(emb_array)
                 best_class_indices = np.argmax(predictions, axis=1)
-                class_indices = np.array(predictions)
                 best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-                bool_pred = predictions > 0.5
                 
                 for i in range(len(best_class_indices)):
                     print('%4d  %s: %.3f' % (i, class_names[best_class_indices[i]], best_class_probabilities[i]))
-                    #print(bool_pred[i])
 
                 accuracy = accuracy_score(y_true=y_true, y_pred=best_class_indices)
                 print('Accuracy: %.3f' % accuracy)
