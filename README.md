@@ -14,7 +14,8 @@ Bibliotecas necessárias
 >audioread 2.1.8
 >SoundFile 0.9.0
 >opencv-python 4.2.0.34
->Para correr o programa executar o main.py
+
+Para correr o programa executar o main.py
 
 Antes de treinar normalizar executando o ficheiro data_preprocess.py
 
